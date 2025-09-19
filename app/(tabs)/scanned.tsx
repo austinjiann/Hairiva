@@ -40,7 +40,7 @@ export default function ScannedScreen() {
         </View>
       </View>
 
-      <Pressable style={({ pressed }) => [styles.nextBtn, pressed && { opacity: 0.9 }]}>
+      <Pressable onPress={() => router.push({ pathname: '/(tabs)/analysis', params: { uri } })} style={({ pressed }) => [styles.nextBtn, pressed && { opacity: 0.9 }]}>
         <Text style={styles.nextText}>Understand Analysis</Text>
       </Pressable>
     </View>
