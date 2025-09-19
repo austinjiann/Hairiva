@@ -25,7 +25,10 @@ export default function AnalysisScreen() {
           )}
         </View>
         <Text style={styles.headerTitle}>Hair Compatibility</Text>
-        <Text style={styles.headerValue}>70/100</Text>
+        <View style={styles.valueRow}>
+          <Text style={styles.metricBig}>70</Text>
+          <Text style={styles.metricOutOf}>/100</Text>
+        </View>
       </View>
       <View style={styles.trackLarge}><View style={[styles.fillLarge, { width: '70%' }]} /></View>
 
