@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
+import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -26,7 +27,9 @@ export default function PhotoScreen() {
       aspect: [3, 4],
     });
     if (!result.canceled) {
-      setSelectedUri(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      setSelectedUri(uri);
+      router.push({ pathname: '/(tabs)/scanned', params: { uri } });
     }
   }, [ensurePermissions]);
 
@@ -40,20 +43,22 @@ export default function PhotoScreen() {
       aspect: [3, 4],
     });
     if (!result.canceled) {
-      setSelectedUri(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      setSelectedUri(uri);
+      router.push({ pathname: '/(tabs)/scanned', params: { uri } });
     }
   }, [ensurePermissions]);
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Image
-          source={require('@/public/hairiva-logo.png')}
-          style={styles.logo}
-          contentFit="contain"
-        />
-        <Text style={styles.brand}>Hairiva</Text>
-      </View>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.replace('/')}
+        style={styles.backBtn}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+      >
+        <Text style={styles.backIcon}>{'‹'}</Text>
+      </Pressable>
 
       <Text style={styles.title}>Take a front or side picture</Text>
 
@@ -76,12 +81,6 @@ export default function PhotoScreen() {
         <Text style={styles.ctaSecondaryText}>Upload from Library</Text>
       </Pressable>
 
-      {selectedUri ? (
-        <View style={styles.previewWrapper}>
-          <Text style={styles.previewLabel}>Selected</Text>
-          <Image source={{ uri: selectedUri }} style={styles.preview} contentFit="cover" />
-        </View>
-      ) : null}
 
     </View>
   );
@@ -91,8 +90,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1A1A1A',
-    paddingTop: 70,
+    paddingTop: 65,
     paddingHorizontal: 20,
+  },
+  backBtn: {
+    position: 'absolute',
+    top: 74,
+    left: 14,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  backIcon: {
+    color: '#FFFFFF',
+    fontSize: 36,
+    lineHeight: 36,
   },
   header: {
     flexDirection: 'row',
@@ -130,7 +145,7 @@ const styles = StyleSheet.create({
   },
   gridImage: {
     width: 160,
-    height: 200,
+    height: 240,
   },
   ctaPrimary: {
     backgroundColor: '#6C63FF',
