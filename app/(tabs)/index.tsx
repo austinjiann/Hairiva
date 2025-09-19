@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 
@@ -32,7 +33,7 @@ export default function UploadLandingScreen() {
         </View>
       </View>
 
-      <Pressable style={({ pressed }) => [styles.ctaButton, pressed && { opacity: 0.9 }]}>
+      <Pressable onPress={() => router.push('/(tabs)/photo')} style={({ pressed }) => [styles.ctaButton, pressed && { opacity: 0.9 }]}> 
         <Text style={styles.ctaText}>Let's Begin</Text>
       </Pressable>
 
