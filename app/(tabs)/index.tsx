@@ -1,98 +1,130 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
 
-export default function HomeScreen() {
+export default function UploadLandingScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
+    <View style={styles.container}>
+      <View style={styles.header}>
         <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+          source={require('@/public/hairiva-logo.png')}
+          style={styles.logo}
+          contentFit="contain"
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+        <Text style={styles.brand}>Hairiva</Text>
+      </View>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      <View style={styles.titleBlock}>
+        <Text style={styles.title}>Upload a photo to find</Text>
+        <Text style={styles.title}>
+          your perfect <Text style={styles.highlight}>haircut</Text>
+        </Text>
+      </View>
+
+      <View style={styles.gridWrapper}>
+        <View style={styles.gridRow}>
+          <Image source={require('@/public/man-1.jpg')} style={styles.gridImage} contentFit="cover" />
+          <Image source={require('@/public/man-2.jpg')} style={styles.gridImage} contentFit="cover" />
+        </View>
+        <View style={styles.gridRow}>
+          <Image source={require('@/public/man-3.jpg')} style={styles.gridImage} contentFit="cover" />
+          <Image source={require('@/public/man-4.jpg')} style={styles.gridImage} contentFit="cover" />
+        </View>
+      </View>
+
+      <Pressable style={({ pressed }) => [styles.ctaButton, pressed && { opacity: 0.9 }]}>
+        <Text style={styles.ctaText}>Let's Begin</Text>
+      </Pressable>
+
+      
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+    backgroundColor: '#1A1A1A',
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    justifyContent: 'center',
+  },
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    position: 'relative',
+    top: 10,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  logo: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  brand: {
+    color: '#FFFFFF',
+    fontSize: 32,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+  titleBlock: {
+    marginTop: 16,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  title: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: '800',
+    lineHeight: 34,
+    textAlign: 'center',
+  },
+  highlight: {
+    color: '#9C89FF',
+  },
+  gridWrapper: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    alignSelf: 'center',
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+  },
+  gridRow: {
+    flexDirection: 'row',
+  },
+  gridImage: {
+    width: 160,
+    height: 240,
+  },
+  ctaButton: {
+    backgroundColor: '#6C63FF',
+    paddingVertical: 16,
+    borderRadius: 24,
+    alignItems: 'center',
+    marginTop: 16,
+    width: 320,
+    alignSelf: 'center',
+  },
+  ctaText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  tabBarPlaceholder: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 24,
+  },
+  tabItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  tabIcon: {
+    fontSize: 24,
+  },
+  tabText: {
+    color: '#FFFFFF',
+    marginTop: 6,
+    fontWeight: '700',
   },
 });
