@@ -32,6 +32,8 @@ export default function AnalysisScreen() {
       </View>
       <View style={styles.trackLarge}><View style={[styles.fillLarge, { width: '70%' }]} /></View>
 
+      <Text style={styles.subTitle}>hair compatibility with facial features:</Text>
+
       <View style={styles.card}>
         <View style={styles.grid}>
           {[
@@ -54,7 +56,16 @@ export default function AnalysisScreen() {
         </View>
       </View>
 
-      <Pressable style={({ pressed }) => [styles.cta, pressed && { opacity: 0.9 }]}>
+      <Pressable
+        onPress={() =>
+          router.push(
+            uri
+              ? { pathname: '/(tabs)/suggestions', params: { uri: String(uri) } }
+              : '/(tabs)/suggestions'
+          )
+        }
+        style={({ pressed }) => [styles.cta, pressed && { opacity: 0.9 }]}
+      >
         <Text style={styles.ctaText}>Glow Up</Text>
       </Pressable>
     </View>
@@ -180,6 +191,14 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#6C63FF',
     borderRadius: 12,
+  },
+  subTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop:6,
+    marginVertical: -6,
   },
   cta: {
     backgroundColor: '#6C63FF',
