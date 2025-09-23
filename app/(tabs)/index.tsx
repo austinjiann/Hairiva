@@ -34,7 +34,7 @@ export default function UploadLandingScreen() {
       </View>
 
       <Pressable onPress={() => router.push('/(tabs)/photo')} style={({ pressed }) => [styles.ctaButton, pressed && { opacity: 0.9 }]}> 
-        <Text style={styles.ctaText}>Let's Begin</Text>
+        <Text style={styles.ctaText}>Let&apos;s Begin</Text>
       </Pressable>
 
       

@@ -1,9 +1,27 @@
+import { loadSession } from '@/services/session';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function ScannedScreen() {
-  const { uri } = useLocalSearchParams<{ uri?: string }>();
+  const { uri: uriParam, score: scoreParam, metrics: metricsParam, face: faceParam, hair: hairParam } = useLocalSearchParams<{ uri?: string; score?: string; metrics?: string; face?: string; hair?: string }>();
+  const [state, setState] = useState<{ uri?: string; score?: number; metrics?: string; face?: string; hair?: string }>({});
+
+  useEffect(() => {
+    (async () => {
+      if (uriParam && scoreParam) {
+        setState({ uri: uriParam, score: Number(scoreParam), metrics: metricsParam, face: faceParam, hair: hairParam });
+        return;
+      }
+      const session = await loadSession();
+      if (session) {
+        setState({ uri: session.uri, score: session.average, metrics: JSON.stringify(session.metrics) });
+      }
+    })();
+  }, [uriParam, scoreParam, metricsParam]);
+
+  const scoreNum = Math.max(40, Math.min(85, Number(state.score ?? '0'))) || 62;
 
   return (
     <View style={styles.container}>
@@ -12,35 +30,35 @@ export default function ScannedScreen() {
       </Pressable>
 
       <View style={styles.avatarWrap}>
-        {uri ? (
-          <Image source={{ uri: String(uri) }} style={styles.avatar} contentFit="cover" />
+        {state.uri ? (
+          <Image source={{ uri: String(state.uri) }} style={styles.avatar} contentFit="cover" />
         ) : (
           <View style={[styles.avatar, styles.avatarPlaceholder]} />
         )}
       </View>
 
-      <Text style={styles.scoreLabel}>Score: 70</Text>
+      <Text style={styles.scoreLabel}>Score: {scoreNum}</Text>
 
       <View style={styles.card}>
         <View style={styles.rowBetween}>
           <Text style={styles.metricTitle}>Hair Compatibility</Text>
-          <Text style={styles.metricValue}>70/100</Text>
+          <Text style={styles.metricValue}>{scoreNum}/100</Text>
         </View>
         <View style={styles.track}>
-          <View style={[styles.fill, { width: '70%' }]} />
+          <View style={[styles.fill, { width: `${scoreNum}%` }]} />
         </View>
 
         <Text style={styles.subtle}>With Hairiva</Text>
         <View style={styles.rowBetween}>
           <Text style={styles.metricTitle}>Potential</Text>
-          <Text style={styles.metricValue}>95/100</Text>
+          <Text style={styles.metricValue}>{Math.max(85, Math.min(100, scoreNum + 10))}/100</Text>
         </View>
         <View style={styles.track}>
-          <View style={[styles.fill, { width: '95%' }]} />
+          <View style={[styles.fill, { width: `${Math.max(85, Math.min(100, scoreNum + 10))}%` }]} />
         </View>
       </View>
 
-      <Pressable onPress={() => router.push({ pathname: '/(tabs)/analysis', params: { uri } })} style={({ pressed }) => [styles.nextBtn, pressed && { opacity: 0.9 }]}>
+      <Pressable onPress={() => router.push({ pathname: '/(tabs)/analysis', params: { uri: String(state.uri ?? ''), score: String(scoreNum), metrics: String(state.metrics ?? ''), face: String(state.face ?? ''), hair: String(state.hair ?? '') } })} style={({ pressed }) => [styles.nextBtn, pressed && { opacity: 0.9 }]}> 
         <Text style={styles.nextText}>Understand Analysis</Text>
       </Pressable>
     </View>

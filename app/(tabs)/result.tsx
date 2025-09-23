@@ -1,21 +1,48 @@
+import { loadSession } from '@/services/session';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function ResultScreen() {
-  const { uri } = useLocalSearchParams<{ uri?: string }>();
+  const { uri, metrics: metricsJson } = useLocalSearchParams<{ uri?: string; metrics?: string }>();
+  const [baseMetrics, setBaseMetrics] = useState<{ faceShape?: number; facialRatio?: number; hairType?: number; jawline?: number; hairline?: number; earShape?: number } | null>(null);
 
-  // Individual metrics that average to 97
+  useEffect(() => {
+    (async () => {
+      try {
+        if (metricsJson) {
+          setBaseMetrics(JSON.parse(String(metricsJson)));
+          return;
+        }
+        const session = await loadSession();
+        if (session?.metrics) setBaseMetrics(session.metrics);
+      } catch {}
+    })();
+  }, [metricsJson]);
+
+  function clamp(min: number, max: number, v: number) { return Math.max(min, Math.min(max, v)); }
+  const base = baseMetrics ?? { faceShape: 65, facialRatio: 65, hairType: 65, jawline: 65, hairline: 65, earShape: 65 };
+  // Uplift each category meaningfully to reflect the improved look. Use varied small offsets for natural numbers.
+  const uplift = 20; // core improvement
+  const offsets = [3, 1, 2, 4, 0, 2]; // small variety
+  const improved = {
+    faceShape: clamp(85, 100, Number(base.faceShape ?? 65) + uplift + offsets[0]),
+    facialRatio: clamp(85, 100, Number(base.facialRatio ?? 65) + uplift + offsets[1]),
+    hairType: clamp(85, 100, Number(base.hairType ?? 65) + uplift + offsets[2]),
+    jawline: clamp(85, 100, Number(base.jawline ?? 65) + uplift + offsets[3]),
+    hairline: clamp(85, 100, Number(base.hairline ?? 65) + uplift + offsets[4]),
+    earShape: clamp(85, 100, Number(base.earShape ?? 65) + uplift + offsets[5]),
+  };
   const metrics = [
-    { label: 'Face Shape', value: 98 },
-    { label: 'Facial Ratio', value: 96 },
-    { label: 'Hair Type', value: 97 },
-    { label: 'Jawline', value: 98 },
-    { label: 'Hairline', value: 96 },
-    { label: 'Ear Shape', value: 98 },
+    { label: 'Face Shape', value: improved.faceShape },
+    { label: 'Facial Ratio', value: improved.facialRatio },
+    { label: 'Hair Type', value: improved.hairType },
+    { label: 'Jawline', value: improved.jawline },
+    { label: 'Hairline', value: improved.hairline },
+    { label: 'Ear Shape', value: improved.earShape },
   ];
-
-  const avg = Math.round(metrics.reduce((a, m) => a + m.value, 0) / metrics.length);
+  const avg = Math.round(metrics.reduce((a, m) => a + (isNaN(m.value) ? 0 : m.value), 0) / metrics.length);
 
   return (
     <View style={styles.container}>

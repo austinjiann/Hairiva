@@ -1,13 +1,46 @@
+import { generateHairImages } from '@/services/generation';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function SuggestionsScreen() {
   const { face, hair, uri } = useLocalSearchParams<{ face?: string; hair?: string; uri?: string }>();
+  const faceLabel = (face ? String(face) : '__').trim();
+  const hairLabel = (hair ? String(hair) : '__').trim();
+  const article = /^[aeiou]/i.test(faceLabel) ? 'an' : 'a';
+  const [prompt, setPrompt] = useState('');
+  const [images, setImages] = useState<string[]>([]);
+  const [changed, setChanged] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const tiles = images.length > 0 ? images : Array.from({ length: 6 }).map(() => uri ? String(uri) : '');
+
+  async function generateAndProceed() {
+    if (!prompt.trim()) {
+      Alert.alert('Describe your new look', 'Enter a request like "korean perm" or "mid fade".');
+      return;
+    }
+    try {
+      setIsGenerating(true);
+      const outs = await generateHairImages(prompt.trim(), uri ? String(uri) : undefined);
+      if (!outs.length) {
+        Alert.alert('Generation failed', 'Please refine your request and try again.');
+        return;
+      }
+      setImages(outs.slice(0, 6));
+      setChanged(true);
+      router.push({ pathname: '/(tabs)/result', params: { uri: String(outs[0]) } });
+    } catch (e) {
+      console.warn('Generation failed', e);
+      Alert.alert('Generation failed', 'Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  }
 
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={20}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentInsetAdjustmentBehavior="always" keyboardDismissMode="on-drag">
         <View style={styles.headerRow}>
           <Pressable accessibilityRole="button" onPress={() => router.replace('/(tabs)/analysis')} style={styles.backBtn}>
             <Text style={styles.backIcon}>{'‹'}</Text>
@@ -15,16 +48,16 @@ export default function SuggestionsScreen() {
           <Text style={styles.title}>find your hairstyle</Text>
         </View>
         <Text style={styles.subtitle}>
-          With a <Text style={styles.underline}>__</Text> face shape and type hair,
+          With {article} <Text style={styles.underline}>{faceLabel}</Text> face shape and <Text style={styles.underline}>{hairLabel}</Text> hair,
           {'\n'}you should try:
         </Text>
 
         <View style={styles.grid}>
-          {Array.from({ length: 6 }).map((_, idx) => (
+          {tiles.map((src, idx) => (
             <View key={idx} style={styles.tile}>
               <View style={styles.imageWrap}>
-                {uri ? (
-                  <Image source={{ uri: String(uri) }} style={styles.tileImage} contentFit="cover" />
+                {src ? (
+                  <Image source={{ uri: src }} style={styles.tileImage} contentFit="cover" />
                 ) : (
                   <View style={[styles.tileImage, styles.imagePlaceholder]} />
                 )}
@@ -37,26 +70,30 @@ export default function SuggestionsScreen() {
         <View style={styles.freeFormRow}>
           <Text style={styles.freeFormPrompt}>Want something else?</Text>
           <TextInput
-            placeholder="Enter here..."
+            value={prompt}
+            onChangeText={setPrompt}
+            placeholder="e.g., korean perm, fade, layered curls"
             placeholderTextColor="#A6A6A6"
             style={styles.freeFormInput}
+            returnKeyType="done"
           />
         </View>
 
         <Pressable
-          onPress={() =>
-            router.push(
-              uri
-                ? { pathname: '/(tabs)/result', params: { uri: String(uri) } }
-                : '/(tabs)/result'
-            )
-          }
+          onPress={generateAndProceed}
           style={({ pressed }) => [styles.cta, pressed && { opacity: 0.9 }]}
         > 
           <Text style={styles.ctaText}>View Transformation</Text>
         </Pressable>
+        {isGenerating && (
+          <View style={styles.overlay}>
+            <ActivityIndicator size="large" color="#6C63FF" />
+            <Text style={styles.overlayText}>Transforming your hairstyle...</Text>
+            <Text style={styles.overlaySub}>This may take a few seconds</Text>
+          </View>
+        )}
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -164,6 +201,35 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: 12,
     paddingVertical: 12,
+  },
+  genBtn: {
+    display: 'none',
+  },
+  genBtnText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  overlayText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '800',
+    marginTop: 8,
+  },
+  overlaySub: {
+    color: '#D9D9D9',
+    fontSize: 14,
+    fontWeight: '700',
   },
   cta: {
     backgroundColor: '#6C63FF',

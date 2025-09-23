@@ -1,11 +1,14 @@
+import { analyzeHairMatch } from '@/services/analysis';
+import { saveSession } from '@/services/session';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function PhotoScreen() {
   const [selectedUri, setSelectedUri] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const ensurePermissions = useCallback(async () => {
     const camera = await ImagePicker.requestCameraPermissionsAsync();
@@ -26,10 +29,22 @@ export default function PhotoScreen() {
       allowsEditing: true,
       aspect: [3, 4],
     });
-    if (!result.canceled) {
-      const uri = result.assets[0].uri;
-      setSelectedUri(uri);
-      router.push({ pathname: '/(tabs)/scanned', params: { uri } });
+    if (result.canceled) return;
+    const uri = result.assets[0].uri;
+    setSelectedUri(uri);
+    try {
+      setIsAnalyzing(true);
+      const outcome = await analyzeHairMatch(uri);
+      if (!outcome.ok) {
+        const msg = outcome.reason === 'no_face' ? 'No clear face with hair detected. Please rescan.' : 'Analysis failed. Please try again.';
+        Alert.alert('Scan issue', msg);
+        return;
+      }
+      const { average, metrics, faceShapeLabel, hairTypeLabel } = outcome;
+      await saveSession({ uri, average, metrics });
+      router.push({ pathname: '/(tabs)/scanned', params: { uri, score: String(average), metrics: JSON.stringify(metrics), face: faceShapeLabel, hair: hairTypeLabel } });
+    } finally {
+      setIsAnalyzing(false);
     }
   }, [ensurePermissions]);
 
@@ -42,10 +57,22 @@ export default function PhotoScreen() {
       allowsEditing: true,
       aspect: [3, 4],
     });
-    if (!result.canceled) {
-      const uri = result.assets[0].uri;
-      setSelectedUri(uri);
-      router.push({ pathname: '/(tabs)/scanned', params: { uri } });
+    if (result.canceled) return;
+    const uri = result.assets[0].uri;
+    setSelectedUri(uri);
+    try {
+      setIsAnalyzing(true);
+      const outcome = await analyzeHairMatch(uri);
+      if (!outcome.ok) {
+        const msg = outcome.reason === 'no_face' ? 'No clear face with hair detected. Please rescan.' : 'Analysis failed. Please try again.';
+        Alert.alert('Scan issue', msg);
+        return;
+      }
+      const { average, metrics, faceShapeLabel, hairTypeLabel } = outcome;
+      await saveSession({ uri, average, metrics });
+      router.push({ pathname: '/(tabs)/scanned', params: { uri, score: String(average), metrics: JSON.stringify(metrics), face: faceShapeLabel, hair: hairTypeLabel } });
+    } finally {
+      setIsAnalyzing(false);
     }
   }, [ensurePermissions]);
 
@@ -82,6 +109,13 @@ export default function PhotoScreen() {
       </Pressable>
 
 
+      {isAnalyzing && (
+        <View style={styles.overlay}> 
+          <ActivityIndicator size="large" color="#6C63FF" />
+          <Text style={styles.overlayText}>Analyzing your photo...</Text>
+          <Text style={styles.overlaySub}>Detecting face and hair</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -92,6 +126,28 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A1A1A',
     paddingTop: 65,
     paddingHorizontal: 20,
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  overlayText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '800',
+    marginTop: 8,
+  },
+  overlaySub: {
+    color: '#D9D9D9',
+    fontSize: 14,
+    fontWeight: '700',
   },
   backBtn: {
     position: 'absolute',
