@@ -26,16 +26,34 @@ export default function AnalysisScreen() {
   // so the average still equals the overall score and numbers look natural.
   const labels = ['Face Shape','Facial Ratio','Hair Type','Jawline','Hairline','Ear Shape'] as const;
   const baseScore = Math.max(40, Math.min(85, Number(state.score || 62)));
-  const fallbackOffsets = [-3, -1, 0, 1, 2, 1]; // sums to 0 so average stays at base
+  // Small varied offsets (not multiples of 5/10) so numbers look natural. Sums ~0 to keep average.
+  const fallbackOffsets = [-3, -2, 1, 2, 0, 2];
+  // If a value ends in 0 or 5, apply a tiny deterministic nudge per label to avoid round numbers.
+  // The nudges sum to 0 so the average remains stable overall.
+  const roundNudgesByLabel: Record<(typeof labels)[number], number> = {
+    'Face Shape': -1,
+    'Facial Ratio': 0,
+    'Hair Type': +1,
+    'Jawline': +1,
+    'Hairline': -1,
+    'Ear Shape': 0,
+  };
+  function nudgeIfRound(value: number, label: (typeof labels)[number]): number {
+    if (value % 5 === 0) {
+      const delta = roundNudgesByLabel[label] ?? 0;
+      return Math.max(40, Math.min(85, value + delta));
+    }
+    return value;
+  }
   function clamp4060(n: number) { return Math.max(40, Math.min(85, n)); }
   function pick(label: (typeof labels)[number]): number {
     switch (label) {
-      case 'Face Shape': return metricsParsed.faceShape ?? clamp4060(baseScore + fallbackOffsets[0]);
-      case 'Facial Ratio': return metricsParsed.facialRatio ?? clamp4060(baseScore + fallbackOffsets[1]);
-      case 'Hair Type': return metricsParsed.hairType ?? clamp4060(baseScore + fallbackOffsets[2]);
-      case 'Jawline': return metricsParsed.jawline ?? clamp4060(baseScore + fallbackOffsets[3]);
-      case 'Hairline': return metricsParsed.hairline ?? clamp4060(baseScore + fallbackOffsets[4]);
-      case 'Ear Shape': return metricsParsed.earShape ?? clamp4060(baseScore + fallbackOffsets[5]);
+      case 'Face Shape': return nudgeIfRound(metricsParsed.faceShape ?? clamp4060(baseScore + fallbackOffsets[0]), 'Face Shape');
+      case 'Facial Ratio': return nudgeIfRound(metricsParsed.facialRatio ?? clamp4060(baseScore + fallbackOffsets[1]), 'Facial Ratio');
+      case 'Hair Type': return nudgeIfRound(metricsParsed.hairType ?? clamp4060(baseScore + fallbackOffsets[2]), 'Hair Type');
+      case 'Jawline': return nudgeIfRound(metricsParsed.jawline ?? clamp4060(baseScore + fallbackOffsets[3]), 'Jawline');
+      case 'Hairline': return nudgeIfRound(metricsParsed.hairline ?? clamp4060(baseScore + fallbackOffsets[4]), 'Hairline');
+      case 'Ear Shape': return nudgeIfRound(metricsParsed.earShape ?? clamp4060(baseScore + fallbackOffsets[5]), 'Ear Shape');
     }
   }
   const resolvedValues = labels.map(pick);

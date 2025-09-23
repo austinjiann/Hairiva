@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function ResultScreen() {
-  const { uri, metrics: metricsJson } = useLocalSearchParams<{ uri?: string; metrics?: string }>();
+  const { uri, metrics: metricsJson, source } = useLocalSearchParams<{ uri?: string; metrics?: string; source?: string }>();
   const [baseMetrics, setBaseMetrics] = useState<{ faceShape?: number; facialRatio?: number; hairType?: number; jawline?: number; hairline?: number; earShape?: number } | null>(null);
 
   useEffect(() => {
@@ -23,16 +23,18 @@ export default function ResultScreen() {
 
   function clamp(min: number, max: number, v: number) { return Math.max(min, Math.min(max, v)); }
   const base = baseMetrics ?? { faceShape: 65, facialRatio: 65, hairType: 65, jawline: 65, hairline: 65, earShape: 65 };
-  // Uplift each category meaningfully to reflect the improved look. Use varied small offsets for natural numbers.
-  const uplift = 20; // core improvement
-  const offsets = [3, 1, 2, 4, 0, 2]; // small variety
+  // If the image came from manual generation, apply a modest uplift (+3..+6).
+  // Otherwise (just scanning), apply a very slight uplift (+1..+3) for realism.
+  const isGenerated = String(source || '').toLowerCase() === 'generated';
+  const uplift = isGenerated ? 5 : 2;
+  const offsets = isGenerated ? [1, 0, 2, 1, -1, 2] : [1, 0, 1, 0, 0, 1];
   const improved = {
-    faceShape: clamp(85, 100, Number(base.faceShape ?? 65) + uplift + offsets[0]),
-    facialRatio: clamp(85, 100, Number(base.facialRatio ?? 65) + uplift + offsets[1]),
-    hairType: clamp(85, 100, Number(base.hairType ?? 65) + uplift + offsets[2]),
-    jawline: clamp(85, 100, Number(base.jawline ?? 65) + uplift + offsets[3]),
-    hairline: clamp(85, 100, Number(base.hairline ?? 65) + uplift + offsets[4]),
-    earShape: clamp(85, 100, Number(base.earShape ?? 65) + uplift + offsets[5]),
+    faceShape: clamp(0, 100, Number(base.faceShape ?? 65) + uplift + offsets[0]),
+    facialRatio: clamp(0, 100, Number(base.facialRatio ?? 65) + uplift + offsets[1]),
+    hairType: clamp(0, 100, Number(base.hairType ?? 65) + uplift + offsets[2]),
+    jawline: clamp(0, 100, Number(base.jawline ?? 65) + uplift + offsets[3]),
+    hairline: clamp(0, 100, Number(base.hairline ?? 65) + uplift + offsets[4]),
+    earShape: clamp(0, 100, Number(base.earShape ?? 65) + uplift + offsets[5]),
   };
   const metrics = [
     { label: 'Face Shape', value: improved.faceShape },

@@ -27,7 +27,7 @@ export default function PhotoScreen() {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
       allowsEditing: true,
-      aspect: [3, 4],
+      aspect: [3, 4], // allow both front and profile; user can rotate or frame accordingly
     });
     if (result.canceled) return;
     const uri = result.assets[0].uri;

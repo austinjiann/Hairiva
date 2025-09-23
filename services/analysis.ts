@@ -46,12 +46,34 @@ export async function analyzeHairMatch(imageUri: string): Promise<AnalysisOutcom
     // Use Gemini 1.5 Pro for vision analysis (facial recognition)
     // Note: For future image generation, use gemini-2.5-flash-image-preview (nano banana)
     const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent';
-    const prompt = `You are an expert barber and facial analysis assistant. Analyze the photo and:
-1) Determine if a clear human face with visible hair exists. If not, set faceDetected=false.
-2) Score each category from 0-100 (integers): faceShape, facialRatio, hairType, jawline, hairline, earShape.
-3) The scores should reflect how well the current haircut matches the user's face shape and features.
-4) Provide two labels: faceShapeLabel (one of: oval, round, square, heart, diamond, oblong, triangle) and hairTypeLabel (one of: straight, wavy, curly, coily).
-Return JSON only with fields: { faceDetected: boolean, scores: { faceShape:number, facialRatio:number, hairType:number, jawline:number, hairline:number, earShape:number }, faceShapeLabel: string, hairTypeLabel: string }.`;
+    const prompt = `You are an expert barber and facial analysis assistant. Analyze the photo STRICTLY and return structured JSON only.
+
+Validation requirements (gate):
+- The person's FULL head (front or side/profile is acceptable) including hair must be fully inside the frame, sharp, and reasonably well-lit.
+- The head should not be heavily obstructed (no large hats/hoodies covering hair) and should not be cropped at the top or bottom.
+- If these requirements are NOT met, set faceDetected=false.
+
+If faceDetected=true, compute objective compatibility scores from 0-100 (integers) that make sense given visible features (avoid rounding everything to 0/5). Use natural variety.
+
+Return JSON EXACTLY in this shape:
+{
+  "faceDetected": boolean,
+  "validation": {
+    "headFullyVisible": boolean,
+    "hairClearlyVisible": boolean,
+    "lightingOk": boolean
+  },
+  "scores": {
+    "faceShape": number,
+    "facialRatio": number,
+    "hairType": number,
+    "jawline": number,
+    "hairline": number,
+    "earShape": number
+  },
+  "faceShapeLabel": "oval|round|square|heart|diamond|oblong|triangle",
+  "hairTypeLabel": "straight|wavy|curly|coily"
+}`;
 
     const body = {
       contents: [
@@ -106,7 +128,9 @@ Return JSON only with fields: { faceDetected: boolean, scores: { faceShape:numbe
     }
 
     const faceDetected: boolean = Boolean(parsed?.faceDetected);
-    if (!faceDetected) {
+    const validation = parsed?.validation ?? {};
+    const fullOk = Boolean(validation?.headFullyVisible ?? validation?.faceFullyVisible) && Boolean(validation?.hairClearlyVisible);
+    if (!faceDetected || !fullOk) {
       return { ok: false, reason: 'no_face', message: 'No clear face/hair detected' };
     }
 

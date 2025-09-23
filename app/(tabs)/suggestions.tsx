@@ -29,7 +29,7 @@ export default function SuggestionsScreen() {
       }
       setImages(outs.slice(0, 6));
       setChanged(true);
-      router.push({ pathname: '/(tabs)/result', params: { uri: String(outs[0]) } });
+      router.push({ pathname: '/(tabs)/result', params: { uri: String(outs[0]), source: 'generated' } });
     } catch (e) {
       console.warn('Generation failed', e);
       Alert.alert('Generation failed', 'Please try again.');
