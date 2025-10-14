@@ -1,14 +1,17 @@
-import { Image } from 'expo-image';
-import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-
+import QRCodeDisplay from "@/components/QRCodeDisplay";
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import { useState } from "react";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function UploadLandingScreen() {
+  const [showQR, setShowQR] = useState(false);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Image
-          source={require('@/public/hairiva-logo.png')}
+          source={require("@/public/hairiva-logo.png")}
           style={styles.logo}
           contentFit="contain"
         />
@@ -24,20 +27,52 @@ export default function UploadLandingScreen() {
 
       <View style={styles.gridWrapper}>
         <View style={styles.gridRow}>
-          <Image source={require('@/public/man-1.jpg')} style={styles.gridImage} contentFit="cover" />
-          <Image source={require('@/public/man-2.jpg')} style={styles.gridImage} contentFit="cover" />
+          <Image
+            source={require("@/public/man-1.jpg")}
+            style={styles.gridImage}
+            contentFit="cover"
+          />
+          <Image
+            source={require("@/public/man-2.jpg")}
+            style={styles.gridImage}
+            contentFit="cover"
+          />
         </View>
         <View style={styles.gridRow}>
-          <Image source={require('@/public/man-3.jpg')} style={styles.gridImage} contentFit="cover" />
-          <Image source={require('@/public/man-4.jpg')} style={styles.gridImage} contentFit="cover" />
+          <Image
+            source={require("@/public/man-3.jpg")}
+            style={styles.gridImage}
+            contentFit="cover"
+          />
+          <Image
+            source={require("@/public/man-4.jpg")}
+            style={styles.gridImage}
+            contentFit="cover"
+          />
         </View>
       </View>
 
-      <Pressable onPress={() => router.push('/(tabs)/photo')} style={({ pressed }) => [styles.ctaButton, pressed && { opacity: 0.9 }]}> 
+      <Pressable
+        onPress={() => router.push("/(tabs)/photo")}
+        style={({ pressed }) => [styles.ctaButton, pressed && { opacity: 0.9 }]}
+      >
         <Text style={styles.ctaText}>Let&apos;s Begin</Text>
       </Pressable>
 
-      
+      <Pressable
+        onPress={() => setShowQR(true)}
+        style={({ pressed }) => [styles.qrButton, pressed && { opacity: 0.9 }]}
+      >
+        <Text style={styles.qrText}>📱 Show QR Code</Text>
+      </Pressable>
+
+      <Modal
+        visible={showQR}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <QRCodeDisplay onClose={() => setShowQR(false)} />
+      </Modal>
     </View>
   );
 }
@@ -45,16 +80,16 @@ export default function UploadLandingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: "#1A1A1A",
     paddingTop: 20,
     paddingHorizontal: 20,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
-    position: 'relative',
+    position: "relative",
     top: 10,
   },
   logo: {
@@ -63,69 +98,85 @@ const styles = StyleSheet.create({
     borderRadius: 24,
   },
   brand: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 32,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: 0.3,
   },
   titleBlock: {
     marginTop: 16,
     marginBottom: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   title: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: "800",
     lineHeight: 34,
-    textAlign: 'center',
+    textAlign: "center",
   },
   highlight: {
-    color: '#9C89FF',
+    color: "#9C89FF",
   },
   gridWrapper: {
     borderRadius: 20,
-    overflow: 'hidden',
-    alignSelf: 'center',
+    overflow: "hidden",
+    alignSelf: "center",
     borderWidth: 1,
-    borderColor: '#FFFFFF',
+    borderColor: "#FFFFFF",
   },
   gridRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   gridImage: {
     width: 160,
     height: 240,
   },
   ctaButton: {
-    backgroundColor: '#6C63FF',
+    backgroundColor: "#6C63FF",
     paddingVertical: 16,
     borderRadius: 24,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 16,
     width: 320,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   ctaText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: "800",
+  },
+  qrButton: {
+    backgroundColor: "#333333",
+    paddingVertical: 12,
+    borderRadius: 20,
+    alignItems: "center",
+    marginTop: 12,
+    width: 320,
+    alignSelf: "center",
+    borderWidth: 1,
+    borderColor: "#555555",
+  },
+  qrText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
   },
   tabBarPlaceholder: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 24,
   },
   tabItem: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
   },
   tabIcon: {
     fontSize: 24,
   },
   tabText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     marginTop: 6,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 });
